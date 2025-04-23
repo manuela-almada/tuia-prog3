@@ -11,17 +11,45 @@ class BreadthFirstSearch:
 
         Args:
             grid (Grid): Grid of points
-            
-        Returns:
-            Solution: Solution found
-        """
-        # Initialize a node with the initial position
-        node = Node("", grid.start, 0)
 
-        # Initialize the explored dictionary to be empty
-        explored = {} 
-        
-        # Add the node to the explored dictionary
-        explored[node.state] = True
-        
+        Returns:
+            Solution: Solution found or not found
+        """
+        # Initialize the frontier with the starting node
+        start_node = Node("", grid.start, 0)
+        frontier = QueueFrontier()
+        frontier.add(start_node)
+
+        # Dictionary to track explored positions
+        explored = {start_node.state: True}
+
+        while not frontier.is_empty():
+            # Remove a node from the frontier (FIFO order)
+            node = frontier.remove()
+
+            # Check if we've reached the goal
+            if node.state == grid.end:
+                return Solution(node, explored)
+
+            # Get neighbors (valid movements and resulting positions)
+            neighbours = grid.get_neighbours(node.state)
+
+            for action, pos in neighbours.items():
+                if pos not in explored:
+                    # Create a new node for the neighbor
+                    new_node = Node(
+                        value="",                 # Not used here
+                        state=pos,                # New position
+                        cost=node.cost + grid.get_cost(pos),  # Cost to reach this node
+                        parent=node,              # Link to parent node
+                        action=action             # Action taken to reach this node
+                    )
+
+                    # Add new node to the frontier
+                    frontier.add(new_node)
+
+                    # Mark position as explored
+                    explored[pos] = True
+
+        # No solution found
         return NoSolution(explored)

@@ -81,9 +81,51 @@ class HillClimbing(LocalSearch):
 
 class HillClimbingReset(LocalSearch):
     """Algoritmo de ascension de colinas con reinicio aleatorio."""
+    def __init__(self) -> None:
+        super().__init__()
+        self.max_iteraciones=50
+    
+    def solve(self, problem:OptProblem):
+        # Inicio del reloj
+        start = time()
 
-    # COMPLETAR
+        # Arrancamos del estado inicial
+        actual = problem.init
+        value = problem.obj_val(problem.init)
+        mejor_tour=actual
+        mejor_value=value
+        reinicios_realizados=0
 
+        while reinicios_realizados<self.max_iteraciones:
+            while True:
+
+                # Buscamos la acción que genera el sucesor con mayor valor objetivo
+                act, succ_val = problem.max_action(actual)
+
+                # Retornar si estamos en un maximo local:
+                # el valor objetivo del sucesor es menor o igual al del estado actual
+                if succ_val <= value:
+                    break
+
+                # Sino, nos movemos al sucesor
+                actual = problem.result(actual, act)
+                value = succ_val
+                self.niters += 1
+
+            if value>mejor_value:
+                mejor_tour=actual
+                mejor_value=value
+
+            actual=problem.random_reset()
+            value=problem.obj_val(actual)
+            reinicios_realizados+=1
+
+        self.tour=mejor_tour
+        self.value=mejor_value
+        end = time()
+        self.time = end-start
+        return
+    
 
 class Tabu(LocalSearch):
     """Algoritmo de busqueda tabu."""

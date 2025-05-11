@@ -161,43 +161,61 @@ class TSP(OptProblem):
             value -= self.G.get_edge_data(u, v)['weight']
         return value
 
-    def max_action(self, state: list[int]) -> tuple[tuple[int, int], float]:
-        """Determina la accion que genera el sucesor con mayor valor objetivo para un estado dado.
-        
+    def max_action(self, state: list[int], tabu_list: list[tuple[int, int]] = [], mejor_valor: float = float("-inf")) -> tuple[tuple[int, int], float]:
+        """Determina la acción que genera el sucesor con mayor valor objetivo para un estado dado.
+    
         Se encuentra optimizada y por razones de eficiencia no se generan los sucesores y 
         tampoco se llama a self.obj_val().
 
         Argumentos:
         ==========
         state: list[int]
-            un estado
+        un estado
+    
+        tabu_list: list[tuple[int, int]], por defecto vacía
+        lista de acciones que no deben considerarse debido a que están en la lista tabú.
 
         Retorno:
         =======
         max_act: tuple[int, int]
-            accion que genera el sucesor con mayor valor objetivo
+        acción que genera el sucesor con mayor valor objetivo.
         max_val: float
-            valor objetivo del sucesor que resulta de aplicar min_act
+        valor objetivo del sucesor que resulta de aplicar max_act.
         """
         value = self.obj_val(state)
         max_act = None
         max_val = float("-inf")
+
         for a in self.actions(state):
             i, j = a
-            v1 = state[i]+1  # origen de i
-            v2 = state[i+1]+1  # destino de i
-            v3 = state[j]+1  # origen de j
-            v4 = state[j+1]+1  # destino de j
+
+            # Calculamos el valor objetivo del sucesor generado por la acción (i, j)
+            v1 = state[i] + 1  # Origen de la arista i
+            v2 = state[i + 1] + 1  # Destino de la arista i
+            v3 = state[j] + 1  # Origen de la arista j
+            v4 = state[j + 1] + 1  # Destino de la arista j
+        
+            # Distancias entre los nodos
             distl1l2 = self.G.get_edge_data(v1, v2)['weight']
             distl3l4 = self.G.get_edge_data(v3, v4)['weight']
             distl1l3 = self.G.get_edge_data(v1, v3)['weight']
             distl2l4 = self.G.get_edge_data(v2, v4)['weight']
-            succ_value =  value + distl1l2 + distl3l4 - distl1l3 - distl2l4
+        
+            # Calculamos el valor objetivo del sucesor
+            succ_value = value + distl1l2 + distl3l4 - distl1l3 - distl2l4
+
+            # Comprobamos que la acción no esté en la lista tabú
+            if a in tabu_list and succ_value<=mejor_valor:
+                continue
+            
+            # Si encontramos un valor objetivo mayor, actualizamos la mejor acción y el mejor valor
             if succ_value > max_val:
                 max_act = a
                 max_val = succ_value
-        return max_act, max_val
 
+        return max_act, max_val
+    
+    
     def random_reset(self) -> list[int]:
         """Devuelve un estado del TSP con un tour aleatorio.
         

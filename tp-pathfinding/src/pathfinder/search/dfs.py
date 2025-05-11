@@ -11,17 +11,55 @@ class DepthFirstSearch:
 
         Args:
             grid (Grid): Grid of points
-            
+           
         Returns:
             Solution: Solution found
         """
-        # Initialize a node with the initial position
-        node = Node("", grid.start, 0)
+        # Inicializamos un nodo como posicion inicial
+        nodo = Node("", grid.start, 0)
 
-        # Initialize the explored dictionary to be empty
-        explored = {} 
-        
-        # Add the node to the explored dictionary
-        explored[node.state] = True
-        
-        return NoSolution(explored)
+        # Inicializamos el diccionario de explorados
+        explorado = {}
+       
+        #Test-Objetivo
+        if nodo.state == grid.end:
+            return Solution(nodo, explorado)
+           
+        frontera = StackFrontier()
+        frontera.add(nodo)
+
+        while True:
+
+            #  Falla si la frontera esta vacia
+            if frontera.is_empty():
+                return NoSolution(explorado)
+            # Removemos un nodo de la frontera
+            nodo = frontera.remove()
+           
+
+            if nodo.state in explorado:
+                continue
+            explorado[nodo.state]=True
+            sucesores = grid.get_neighbours(nodo.state)
+
+            for accion, resultado in sucesores.items():  
+                nuevo_estado = resultado  # Obtener el nuevo estado
+
+
+                # Chequeamos si el sucesor no ha sido explorado
+                if nuevo_estado not in explorado:
+
+                        # Initializamos el nodo hijo
+                    nuevo_nodo = Node("", nuevo_estado,
+                                        nodo.cost + grid.get_cost(nuevo_estado),
+                                        parent=nodo,action=accion)
+                        # Marcamos el sucesor como alcanzado
+                    #explorado[nuevo_estado] = True
+
+                    # Retornamos si el nodo posee un estado objetivo
+                    if nuevo_estado == grid.end:
+                        return Solution(nuevo_nodo, explorado)
+               
+                 
+                    # Aniadimos el nuevo nodo a la frontera
+                    frontera.add(nuevo_nodo)

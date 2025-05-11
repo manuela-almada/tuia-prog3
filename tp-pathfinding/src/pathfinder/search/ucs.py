@@ -1,5 +1,5 @@
 from ..models.grid import Grid
-from ..models.frontier import StackFrontier
+from ..models.frontier import PriorityQueueFrontier
 from ..models.solution import NoSolution, Solution
 from ..models.node import Node
 
@@ -15,13 +15,39 @@ class UniformCostSearch:
         Returns:
             Solution: Solution found
         """
-        # Initialize a node with the initial position
-        node = Node("", grid.start, 0)
+        # Inicializamos un nodo con la posicion inicial
+        nodo= Node("", grid.start, 0)
 
-        # Initialize the explored dictionary to be empty
-        explored = {} 
-        
+        frontera = PriorityQueueFrontier()
+        frontera.add(nodo,nodo.cost)
+
+        # Inicializamos el diccionario de explorados (vacio)
+        explorado = {}
+       
         # Add the node to the explored dictionary
-        explored[node.state] = True
-        
-        return NoSolution(explored)
+        explorado[nodo.state] = nodo.cost
+
+        while True:
+            if frontera.is_empty():
+                return NoSolution(explorado)
+            # Removemos un nodo de la frontera
+            nodo = frontera.pop()
+            if nodo.state == grid.end:
+                return Solution(nodo, explorado)
+            sucesores = grid.get_neighbours(nodo.state)
+
+           
+            for accion, resultado in sucesores.items():  # Suponiendo que sucesores es un diccionario
+                nuevo_estado = resultado
+                costo_nuevo_estado=nodo.cost+ grid.get_cost(nuevo_estado)
+               
+                if nuevo_estado not in explorado or costo_nuevo_estado<explorado[nuevo_estado]:
+                     # Inicializamos nodo hijo
+                    nuevo_nodo = Node("", nuevo_estado,
+                                    costo_nuevo_estado,
+                                    parent=nodo,action=accion)
+                   
+                    explorado[nuevo_estado] = costo_nuevo_estado
+
+                    frontera.add(nuevo_nodo,costo_nuevo_estado)
+
